@@ -3,55 +3,49 @@
 
 #include <iostream>
 #include <thread>
-#include <vector>   
-#include <mutex>    
-#include <condition_variable>
+#include <future>  
 #include <chrono>
 
 using namespace std;
-mutex mutex1; // Declaring a mutex
-condition_variable con_var; // Declaring a mutex
-int x = 0; 
 
-//Void function
-void waits() {
-    unique_lock<mutex> locked(mutex1);
-    cout << "waiting...\n";
+// not declaring a function as global you can still pass it to another function by adding it by reference.
+void The_Ultimate_Question(promise<int>  & promise_int){
+    std::lock_guard<mutex> guard1();
+    cout << "Pan-dimensional beings -> What is the answer to" << endl << "life, the universe, and everything?" << endl;
+    this_thread::sleep_for(chrono::seconds(2));
+    cout << "Deep thought -> Thinking............." << endl;
+    this_thread::sleep_for(chrono::seconds(10));
+    cout << "The narator -> 7 1/2 Million Years Later" << endl;
+    this_thread::sleep_for(chrono::seconds(3));
+    cout << "Deep thought -> The answer to life, the universe, and everything is........" << endl;
+    this_thread::sleep_for(chrono::seconds(2));
+    cout << "Pan-dimensional beings -> Yes, Yes ... tell us we've waited so long" << endl;
+    this_thread::sleep_for(chrono::seconds(2));
+    cout << "Deep thought -> The answer to life, the universe, and everything is ...." << endl;
+    this_thread::sleep_for(chrono::seconds(4));
 
-    con_var.wait(locked, []() {return x == 1; });
+    promise_int.set_value(42);
 
-    cout << "...finished waiting. x ==1\n";
-}
-//Void function
-void signal() {
-    this_thread::sleep_for(chrono::seconds(1));
-    cout << "Notifying...\n";
-
-    con_var.notify_all();
-
-    this_thread::sleep_for(chrono::seconds(1));
-    x = 1;
-    cout << "Notifying Againg...\n";
-    con_var.notify_all();
+    this_thread::sleep_for(chrono::seconds(2));
+    cout << "Pan-Dimensional beings -> 42 ? , what? Are you sure?" << endl;
+    this_thread::sleep_for(chrono::seconds(2));
+    cout << "Deep thought -> Yes, Yes I'm sure, that's it 42 " << endl;
+    this_thread::sleep_for(chrono::seconds(2));
+    cout << "Pan-Dimensional beings -> 42 ? , what a meaningless answer.. stupid computer" << endl;
+    this_thread::sleep_for(chrono::seconds(2));
+    cout << "Deep thought -> How can i answer your question, " << endl << "when you don't even know what the question is "<<endl;
 }
 
 
 int main()
 {
-    vector<thread> threads; 
-    for (int i = 0; i < 4; ++i)
-    {
-        threads.push_back(thread(waits));
-    }
+    promise <int> promise_int;
+    future <int> future_int = promise_int.get_future();
+    thread worker(The_Ultimate_Question, ref(promise_int));
+    cout << "Deep thought ->" << future_int.get() << endl;
 
-    thread s_thread(signal);
-
-    for (auto& thread : threads)
-    {
-        thread.join();
-    }
-
-    printf("press enter to continue\n");
+    worker.join();
+    printf("Press enter to continue\n");
     getchar();
 
     return 0;
