@@ -5,30 +5,55 @@
 #include <thread>
 #include <vector>   
 #include <mutex>    
+#include <condition_variable>
+#include <chrono>
 
 using namespace std;
-std::mutex mutex1;
+mutex mutex1; // Declaring a mutex
+condition_variable con_var; // Declaring a mutex
+int x = 0; 
 
-void helloWorld() {
-    std::lock_guard<mutex> guard1(mutex1);
-    cout << "hello World from thread" << this_thread::get_id() << endl;
+//Void function
+void waits() {
+    unique_lock<mutex> locked(mutex1);
+    cout << "waiting...\n";
+
+    con_var.wait(locked, []() {return x == 1; });
+
+    cout << "...finished waiting. x ==1\n";
+}
+//Void function
+void signal() {
+    this_thread::sleep_for(chrono::seconds(1));
+    cout << "Notifying...\n";
+
+    con_var.notify_all();
+
+    this_thread::sleep_for(chrono::seconds(1));
+    x = 1;
+    cout << "Notifying Againg...\n";
+    con_var.notify_all();
 }
 
 
 int main()
 {
     vector<thread> threads; 
-    for (int i = 0; i < 5; ++i)
+    for (int i = 0; i < 4; ++i)
     {
-        threads.push_back(thread(helloWorld));
+        threads.push_back(thread(waits));
     }
+
+    thread s_thread(signal);
 
     for (auto& thread : threads)
     {
         thread.join();
     }
+
     printf("press enter to continue\n");
     getchar();
+
     return 0;
 }
 
